@@ -1,0 +1,5 @@
+{
+  "python.autoComplete.extraPaths": ["./grpc_pb"],
+  "python.analysis.extraPaths": ["./grpc_pb"],
+  "python.analysis.typeCheckingMode": "basic"
+}

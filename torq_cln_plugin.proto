@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option go_package = "github.com/lncapital/torq-core/torq_cln_plugin";
+
+// Only edit this file in the cln-plugin directory as make generate-from-proto will copy it from there
+
+service TorqCLNPlugin {
+  rpc TestConnection(EmptyMessage) returns (TestConnectionResponse) {}
+
+  rpc InterceptChannelOpen(EmptyMessage) returns (stream InterceptChannelOpenRequest) {}
+
+  rpc RespondChannelOpen(InterceptChannelOpenResponse) returns (EmptyMessage) {}
+}
+
+message EmptyMessage {}
+
+message TestConnectionResponse {
+    string pubkey = 1;
+    string version = 2;
+}
+
+message InterceptChannelOpenRequest {
+    string message_id = 1;
+
+    double timestamp = 2;
+
+    string peer_pubkey = 3;
+}
+
+message InterceptChannelOpenResponse {
+    string message_id = 1;
+
+    double orig_timestamp = 2;
+
+    bool allow = 3;
+
+    optional string reject_reason = 4;
+}
