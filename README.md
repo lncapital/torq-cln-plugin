@@ -15,7 +15,7 @@ Once the plugin is added to the CLN plugins repository, it can be installed with
 #### CLN configuration options added by the plugin
 
 - `torq-grpc-port`: the port that the plugin's own gRPC server will listen on. Default: 50053
-- `torq-channel-open-default-action`: the default action to take (if there is no connection to Torq) when a channel open is requested. boolean. true = allow, false = reject. Default: false
+- `torq-channel-open-default-action`: the default action to take (if there is no connection to Torq) when a channel open is requested. boolean. true = allow, false = reject. Default: allow
 
 #### Features enabled by the plugin
 

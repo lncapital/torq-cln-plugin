@@ -181,7 +181,7 @@ plugin.add_option(
 
 plugin.add_option(
     OPT_CHANNEL_OPEN_DEFAULT_ACTION,
-    "false",
+    "true",
     "Default action of the channel open interceptor in case there is no connection to Torq: 0=reject, 1=allow.",
     "bool",
 )
