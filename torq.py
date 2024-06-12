@@ -3,19 +3,62 @@
 A plugin to add functionality to CLN needed by Torq.
 """
 
-
-from threading import Thread
-import json
-import uuid
-import grpc
-from concurrent import futures
-import time
-from queue import Empty as QueueEmptyError, Queue
-
-from pyln.client import Plugin
-
-from plugin_grpc_server import ThreadCommunicator, serve_grpc
 from const import *
+from pyln.client import Plugin
+from threading import Thread
+import time
+import os
+
+plugin = Plugin()
+plugin.dynamic = True
+
+plugin.add_option(
+    OPT_GRPC_PORT,
+    DEFAULT_GRPC_PORT,
+    "Port for the gRPC server.",
+    "int",
+)
+
+plugin.add_option(
+    OPT_CHANNEL_OPEN_DEFAULT_ACTION,
+    "true",
+    "Default action of the channel open interceptor in case there is no connection to Torq: 0=reject, 1=allow.",
+    "bool",
+)
+
+try:
+    import uuid
+    import grpc
+    from concurrent import futures
+    from queue import Empty as QueueEmptyError, Queue
+
+    from plugin_grpc_server import ThreadCommunicator, serve_grpc
+
+except ImportError as e:
+    # handle import error and exit the plugin gracefully
+    @plugin.init()
+    def init(options: dict, configuration: dict, plugin: Plugin):
+        plugin.log(f"Error importing dependencies of plugin: {e}", "error")
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        plugin_name = os.path.join(dir_path, "torq.py")
+        requirements_path = os.path.join(dir_path, "requirements.txt")
+
+        if plugin.rpc is not None:
+            plugin.log(f"Stopping plugin due to import error.", "error")
+
+            plugin.log(
+                f"Install the missing dependencies with: \npip install -r {requirements_path}\n Then restart the plugin with: \nlightning-cli plugin start {plugin_name}"
+            )
+            # stop self
+            plugin.rpc.plugin_stop(plugin_name)
+
+    plugin.run()
+    exit(0)
+
+
+# no import error, continue with the plugin
 
 
 def reset_plugin_state(plugin_state: dict):
@@ -29,7 +72,6 @@ plugin_state = reset_plugin_state({})
 
 grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 tc = ThreadCommunicator(grpc_server)
-plugin = Plugin()
 
 grpc_server_thread = Thread(
     target=serve_grpc,
@@ -74,12 +116,38 @@ def on_openchannel_internal(openchannel: dict, plugin: Plugin, version: int):
         }
 
     peer_pubkey = ""
+    funding_amount_sat = 0
+    push_amount_msat = 0
+    dust_limit_msat = 0
+    max_htlc_value_in_flight_msat = 0
+    channel_reserve_sat = 0
+    feerate_per_kw = 0
+    to_self_delay = 0
+    max_accepted_htlcs = 0
 
     try:
         peer_pubkey = str(openchannel["id"])
         if not peer_pubkey:
             raise ValueError("Peer pubkey not found in openchannel request")
         # if getting different values, handle both: openchannel and openchannel2
+
+        if version == 1:
+            funding_amount_sat = int(int(openchannel["funding_msat"]) / 1000)
+            push_amount_msat = int(openchannel["push_msat"])
+            channel_reserve_sat = int(int(openchannel["channel_reserve_msat"]) / 1000)
+            feerate_per_kw = int(openchannel["feerate_per_kw"])
+        if version == 2:
+            funding_amount_sat = int(int(openchannel["their_funding_msat"]) / 1000)
+            feerate_per_kw = int(openchannel["funding_feerate_per_kw"])
+
+        dust_limit_msat = int(openchannel["dust_limit_msat"])
+        max_htlc_value_in_flight_msat = int(
+            openchannel["max_htlc_value_in_flight_msat"]
+        )
+
+        to_self_delay = int(openchannel["to_self_delay"])
+        max_accepted_htlcs = int(openchannel["max_accepted_htlcs"])
+
     except:
         plugin.log(f"Error parsing openchannel {version} request")
 
@@ -92,11 +160,18 @@ def on_openchannel_internal(openchannel: dict, plugin: Plugin, version: int):
     start_time = time.time()
     message_id = str(uuid.uuid4())
 
-    # TODO add more data to the request
     intercepted_channel_open_msg = {
         "message_id": message_id,
         "timestamp": start_time,
         "peer_pubkey": peer_pubkey,
+        "funding_amount_sat": funding_amount_sat,
+        "push_amount_msat": push_amount_msat,
+        "dust_limit_msat": dust_limit_msat,
+        "max_htlc_value_in_flight_msat": max_htlc_value_in_flight_msat,
+        "channel_reserve_sat": channel_reserve_sat,
+        "feerate_per_kw": feerate_per_kw,
+        "to_self_delay": to_self_delay,
+        "max_accepted_htlcs": max_accepted_htlcs,
     }
 
     response_queue = Queue()
@@ -167,23 +242,10 @@ def on_shutdown(plugin: Plugin, **kwargs):
 @plugin.init()
 def init(options: dict, configuration: dict, plugin: Plugin):
     # start grpc server thread by running serve_grpc in a separate thread
+
     grpc_server_thread.start()
 
     plugin.log("Torq plugin initialized")
 
-
-plugin.add_option(
-    OPT_GRPC_PORT,
-    DEFAULT_GRPC_PORT,
-    "Port for the gRPC server.",
-    "int",
-)
-
-plugin.add_option(
-    OPT_CHANNEL_OPEN_DEFAULT_ACTION,
-    "true",
-    "Default action of the channel open interceptor in case there is no connection to Torq: 0=reject, 1=allow.",
-    "bool",
-)
 
 plugin.run()

@@ -21,10 +21,16 @@ message TestConnectionResponse {
 
 message InterceptChannelOpenRequest {
     string message_id = 1;
-
     double timestamp = 2;
-
     string peer_pubkey = 3;
+    uint64 funding_amount_sat = 4;
+    uint64 push_amount_msat = 5;
+    uint64 dust_limit_msat = 6;
+    uint64 max_htlc_value_in_flight_msat = 7;
+    uint64 channel_reserve_sat = 8;
+    uint64 feerate_per_kw = 9;
+    uint32 to_self_delay = 10;
+    uint32 max_accepted_htlcs = 11;
 }
 
 message InterceptChannelOpenResponse {

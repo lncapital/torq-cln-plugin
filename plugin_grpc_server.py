@@ -1,4 +1,3 @@
-import json
 import sys
 import os
 from queue import Queue, Empty as QueueEmptyError
@@ -145,11 +144,20 @@ class TorqCLNPlugin(torq_cln_plugin_pb2_grpc.TorqCLNPluginServicer):
                 except QueueEmptyError:
                     continue
 
-                # TODO add more data to the request
                 yield torq_cln_plugin_pb2.InterceptChannelOpenRequest(
                     message_id=str(channel_intercepted_msg["message_id"]),
                     timestamp=channel_intercepted_msg["timestamp"],
                     peer_pubkey=channel_intercepted_msg["peer_pubkey"],
+                    funding_amount_sat=channel_intercepted_msg["funding_amount_sat"],
+                    push_amount_msat=channel_intercepted_msg["push_amount_msat"],
+                    dust_limit_msat=channel_intercepted_msg["dust_limit_msat"],
+                    max_htlc_value_in_flight_msat=channel_intercepted_msg[
+                        "max_htlc_value_in_flight_msat"
+                    ],
+                    channel_reserve_sat=channel_intercepted_msg["channel_reserve_sat"],
+                    feerate_per_kw=channel_intercepted_msg["feerate_per_kw"],
+                    to_self_delay=channel_intercepted_msg["to_self_delay"],
+                    max_accepted_htlcs=channel_intercepted_msg["max_accepted_htlcs"],
                 )
         except Exception as e:
             self.plugin.log(f"Channel open interceptor stream error: {e}")

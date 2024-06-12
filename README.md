@@ -20,3 +20,23 @@ Once the plugin is added to the CLN plugins repository, it can be installed with
 #### Features enabled by the plugin
 
 - Intercept channel opens: Torq can dynamically filter on which channels are allowed to open to the node.
+
+#### Development
+
+To run in development mode, install the depenedencies with (change path if necessary):
+
+```
+pip install -r /usr/local/libexec/c-lightning/plugins/torq/requirements.txt
+```
+
+Then run the plugin with (change path if necessary):
+
+```
+lightning-cli --regtest plugin start /usr/local/libexec/c-lightning/plugins/torq/torq.py
+```
+
+To update the protoc definintions to correspond the protofile, run:
+
+```
+python -m grpc_tools.protoc -I. --python_out=./grpc_pb --pyi_out=./grpc_pb --grpc_python_out=./grpc_pb ./torq_cln_plugin.proto
+```
