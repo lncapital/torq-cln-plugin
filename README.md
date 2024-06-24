@@ -2,14 +2,20 @@
 
 A plugin for CLN to add some features to Torq with CLN nodes. Only use with Torq!
 
-Supported Torq version: x.x.x (TODO add version)
+Requires Torq version 2.0 (or later). Release in H2 2024.
 
 The plugin uses it's own separate gRPC server to communicate with Torq. Note: The separate gRPC is currently unauthenticated and unencrypted(!), so if Torq is communicating to CLN over the internet, using this plugin is highly discouraged! Use on local networks only. Also be sure that the port of the plugin's gRPC server is not open to the internet.
 
 #### Installation
 
-Once the plugin is added to the CLN plugins repository, it can be installed with:
+To install the plugin, git and python3-venv must be installed:
 
+    apt-get update
+    apt-get install git python3-venv
+
+The plugin can be installed with (add -r flag for regtest):
+
+    reckless source add https://github.com/lncapital/torq-cln-plugin
     reckless install torq
 
 #### CLN configuration options added by the plugin
