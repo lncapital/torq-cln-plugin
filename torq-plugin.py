@@ -42,7 +42,7 @@ except ImportError as e:
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
-        plugin_name = os.path.join(dir_path, "torq.py")
+        plugin_name = os.path.join(dir_path, "torq-plugin.py")
         requirements_path = os.path.join(dir_path, "requirements.txt")
 
         if plugin.rpc is not None:

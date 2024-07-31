@@ -15,7 +15,7 @@ To install the plugin, git and python3-venv must be installed:
 
 The plugin can be installed with (add -r flag for regtest):
 
-    reckless install torq
+    reckless install torq-plugin
 
 #### CLN configuration options added by the plugin
 
@@ -28,18 +28,18 @@ The plugin can be installed with (add -r flag for regtest):
 
 #### Development
 
-Copy the contents of the plugin to /usr/local/libexec/c-lightning/plugins/torq
+Copy the contents of the plugin to /usr/local/libexec/c-lightning/plugins/torq-plugin
 
 To run in development mode, install the depenedencies with (change path if necessary):
 
 ```
-pip install -r /usr/local/libexec/c-lightning/plugins/torq/requirements.txt
+pip install -r /usr/local/libexec/c-lightning/plugins/torq-plugin/requirements.txt
 ```
 
 Then run the plugin with (change path if necessary):
 
 ```
-lightning-cli --regtest plugin start /usr/local/libexec/c-lightning/plugins/torq/torq.py
+lightning-cli --regtest plugin start /usr/local/libexec/c-lightning/plugins/torq-plugin/torq-plugin.py
 ```
 
 To update the protoc definintions to correspond the protofile, run:
