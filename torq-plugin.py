@@ -247,5 +247,7 @@ def init(options: dict, configuration: dict, plugin: Plugin):
 
     plugin.log("Torq plugin initialized")
 
+    return {}
+
 
 plugin.run()
