@@ -234,9 +234,9 @@ def on_shutdown(plugin: Plugin, **kwargs):
     reset_plugin_state(plugin_state)
 
     tc.exit()
-    if grpc_server_thread.is_alive():
-        # 5 second timeout to allow for graceful shutdown
-        grpc_server_thread.join(5)
+    # 5 second timeout to allow for graceful shutdown
+    grpc_server_thread.join(5)
+    exit(0)
 
 
 @plugin.init()

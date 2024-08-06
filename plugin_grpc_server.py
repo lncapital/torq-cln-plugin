@@ -47,18 +47,18 @@ class ThreadCommunicator:
 
     def clear(self):
         # dict to store the intercepted channel open requests
-        self.intercepted_channel_open_resonses = ThreadSafeDict()
+        self.intercepted_channel_open_responses = ThreadSafeDict()
 
         # queue to send channel open to send channel open to grpc subscription
         self.intercepted_channel_open_queue = Queue()
 
     def intercepted_channel_open_response_queue_set(self, key: str, value: Queue):
         """Set the queue that waits for the allow/reject response to the channel open"""
-        self.intercepted_channel_open_resonses.set(key, value)
+        self.intercepted_channel_open_responses.set(key, value)
 
     def intercepted_channel_open_responses_pop(self, key):
         """Get and remove the queue that waits for the allow/reject response to the channel open"""
-        return self.intercepted_channel_open_resonses.pop(key)
+        return self.intercepted_channel_open_responses.pop(key)
 
     def intercepted_channel_open_respond(self, value):
         """Send the response to the channel open request to the channel open hook."""
