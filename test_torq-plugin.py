@@ -20,6 +20,36 @@ def get_grpc_client():
     return stub
 
 
+def join_nodes_ignore_exception(node_factory, node1, node2):
+    try:
+        node_factory.join_nodes([node1, node2], wait_for_announce=True)
+    except Exception as e:
+        print(f"Join_nodes exception ignored: {e}")
+
+
+def join_nodes_for_version_23(node_factory, node1, node2):
+    initial_channel_amount = len(
+        node2.rpc.listchannels(source=node1.info["id"])["channels"]
+    )
+
+    open_channel_thread = threading.Thread(
+        join_nodes_ignore_exception(node_factory, node1, node2)
+    )
+    open_channel_thread.start()
+
+    # 10 seconds timeout to wait for channel open
+    for _ in range(10):
+        if (
+            len(node2.rpc.listchannels(source=node1.info["id"])["channels"])
+            == initial_channel_amount + 1
+        ):
+            break
+        time.sleep(1)
+
+    # force the thread to stop since the join_nodes hangs for version 23
+    open_channel_thread.join(1)
+
+
 def test_start_stop_plugin(node_factory):
     node = node_factory.get_node(options=pluginopt)
 
@@ -44,8 +74,16 @@ def test_InterceptChannelOpen(node_factory):
     node = node_factory.get_node(options=pluginopt)
     ext_node = node_factory.get_node()
 
+    node_version = node.rpc.getinfo()["version"]
+
+    # for version 23, must do tricks because node_factory.join_nodes doesn't work for that version
+    node_v_23 = "v23" in node_version
+
     # By default allow channel open because by default torq-channel-open-default-action is true
-    node_factory.join_nodes([ext_node, node], wait_for_announce=True)
+    if node_v_23:
+        join_nodes_for_version_23(node_factory, ext_node, node)
+    else:
+        node_factory.join_nodes([ext_node, node], wait_for_announce=True)
 
     # channel opened
     assert len(node.rpc.listchannels(source=ext_node.info["id"])["channels"]) == 1
@@ -101,7 +139,12 @@ def test_InterceptChannelOpen(node_factory):
 
     # Try to open a new channel, should allow
     interception_data["allow"] = True
-    node_factory.join_nodes([ext_node2, node], wait_for_announce=True)
+
+    if node_v_23:
+        join_nodes_for_version_23(node_factory, ext_node2, node)
+    else:
+        node_factory.join_nodes([ext_node2, node], wait_for_announce=True)
+
     # channel opened
     assert len(node.rpc.listchannels(source=ext_node2.info["id"])["channels"]) == 1
 
