@@ -1,5 +1,7 @@
 ## Torq CLN plugin
 
+**Currently out of date and removed from Reckless. If you need this, please open an issue about it**
+
 A plugin for CLN to add some features to Torq with CLN nodes. Only use with Torq!
 
 Requires Torq version 2.0 (or later).
